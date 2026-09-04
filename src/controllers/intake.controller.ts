@@ -39,19 +39,34 @@ export const logIntake = async (req: Request, res: Response, next: NextFunction)
 export const getTodayIntake = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!._id;
+    const userObjectId = new mongoose.Types.ObjectId(userId.toString());
     const { startOfDay, endOfDay, dateString } = getUTCDayRange();
 
-    // Fetch system daily goal (with guaranteed 2000 ml fallback)
-    const settings = await AppSettings.findOne().sort({ updatedAt: -1 });
+    // Fetch system daily goal and compute today's total volume via MongoDB $sum aggregation in parallel
+    const [settings, sumResult, entries] = await Promise.all([
+      AppSettings.findOne({ key: 'global' }),
+      IntakeLog.aggregate([
+        {
+          $match: {
+            userId: userObjectId,
+            consumedAt: { $gte: startOfDay, $lte: endOfDay }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$amount' }
+          }
+        }
+      ]),
+      IntakeLog.find({
+        userId,
+        consumedAt: { $gte: startOfDay, $lte: endOfDay }
+      }).sort({ consumedAt: -1 })
+    ]);
+
     const dailyGoalMl = settings?.dailyGoalMl || 2000;
-
-    // Fetch today's intake entries in UTC
-    const entries = await IntakeLog.find({
-      userId,
-      consumedAt: { $gte: startOfDay, $lte: endOfDay }
-    }).sort({ consumedAt: -1 });
-
-    const totalIntakeMl = entries.reduce((sum, item) => sum + item.amount, 0);
+    const totalIntakeMl = sumResult.length > 0 ? sumResult[0].total : 0;
     const progressPercentage = Math.round((totalIntakeMl / dailyGoalMl) * 100);
     const remainingMl = Math.max(0, dailyGoalMl - totalIntakeMl);
 
@@ -81,7 +96,7 @@ export const getIntakeHistory = async (req: Request, res: Response, next: NextFu
     const userId = req.user!._id;
 
     // Fetch system daily goal (with guaranteed 2000 ml fallback)
-    const settings = await AppSettings.findOne().sort({ updatedAt: -1 });
+    const settings = await AppSettings.findOne({ key: 'global' });
     const dailyGoalMl = settings?.dailyGoalMl || 2000;
 
     // Aggregate logs grouped by UTC date

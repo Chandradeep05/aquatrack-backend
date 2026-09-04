@@ -165,14 +165,36 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
       return sendError(res, 'Admins cannot delete their own account.', 400);
     }
 
-    const deletedLogs = await IntakeLog.deleteMany({ userId: targetUser._id });
-    await User.findByIdAndDelete(targetUser._id);
+    let cascadeDeletedLogsCount = 0;
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const deletedLogs = await IntakeLog.deleteMany({ userId: targetUser._id }).session(session);
+        cascadeDeletedLogsCount = deletedLogs.deletedCount;
+        await User.findByIdAndDelete(targetUser._id).session(session);
+      });
+    } catch (transactionError: any) {
+      // Standalone MongoDB instances do not support replica set transactions; fallback gracefully
+      if (
+        transactionError?.message?.includes('replica set') ||
+        transactionError?.code === 20 ||
+        transactionError?.codeName === 'IllegalOperation'
+      ) {
+        const deletedLogs = await IntakeLog.deleteMany({ userId: targetUser._id });
+        cascadeDeletedLogsCount = deletedLogs.deletedCount;
+        await User.findByIdAndDelete(targetUser._id);
+      } else {
+        throw transactionError;
+      }
+    } finally {
+      await session.endSession();
+    }
 
     return sendSuccess(
       res,
       {
         deletedUserId: id,
-        cascadeDeletedLogsCount: deletedLogs.deletedCount
+        cascadeDeletedLogsCount
       },
       'User and associated intake records deleted successfully',
       200
