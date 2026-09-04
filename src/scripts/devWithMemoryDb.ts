@@ -1,4 +1,4 @@
-﻿import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import app from '../app';
 import { env } from '../config/env';
@@ -6,7 +6,11 @@ import { User } from '../models/User';
 
 const startInMemoryServer = async () => {
   console.log('[Dev-Mem] Starting in-memory MongoDB server...');
-  const mongod = await MongoMemoryServer.create();
+  const mongod = await MongoMemoryServer.create({
+    instance: {
+      launchTimeout: 60000
+    }
+  });
   const uri = mongod.getUri();
   console.log(`[Dev-Mem] In-memory MongoDB running at: ${uri}`);
 
