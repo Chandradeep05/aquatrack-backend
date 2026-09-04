@@ -81,7 +81,7 @@ aquatrack-backend/
 │   ├── utils/           # API response helpers, JWT token helpers, UTC date logic
 │   ├── app.ts           # Express application initialization & middleware pipeline
 │   └── server.ts        # Server entrypoint connecting to DB and listening on port
-├── tests/               # 28+ End-to-End Jest & Supertest automated test cases
+├── tests/               # 30 End-to-End Jest & Supertest automated test cases
 ├── .env.example         # Template for environment variables
 ├── package.json         # Dependencies, build, test, and verify scripts
 ├── tsconfig.json        # TypeScript configuration
@@ -125,11 +125,11 @@ aquatrack-backend/
      ```bash
      npm run dev
      ```
-   - **Option B (Zero-Setup In-Memory Dev Server — No MongoDB installation required)**:
+   - **Option B (In-Memory MongoDB Mode — No external MongoDB installation required)**:
      ```bash
      npm run dev:mem
      ```
-     *Spins up an embedded in-memory MongoDB instance and auto-seeds the admin user for instant testing.*
+     *Spins up an embedded in-memory MongoDB instance and auto-seeds the admin user for instant testing. (Environment variables in `.env` are still required).*
 
 The server will run at `http://localhost:5000`. Test health with:
 `GET http://localhost:5000/api/health`
@@ -153,11 +153,11 @@ The server will run at `http://localhost:5000`. Test health with:
 
 ## Admin Account Seeding
 
-To create or reset the administrator credentials:
+To create or verify the administrator credentials:
 ```bash
 npm run seed:admin
 ```
-This script is idempotent: if the user already exists, it elevates their role to `admin` and updates their password.
+This script is idempotent and secure: if the admin user already exists with `admin` role, it safely confirms it. If an account already exists as a standard `user` with that email, the script safely halts with an alert rather than elevating privileges.
 
 ---
 

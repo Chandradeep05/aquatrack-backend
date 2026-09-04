@@ -107,6 +107,9 @@ export const getIntakeHistory = async (req: Request, res: Response, next: NextFu
         }
       },
       {
+        $sort: { consumedAt: -1 }
+      },
+      {
         $group: {
           _id: {
             $dateToString: { format: '%Y-%m-%d', date: '$consumedAt', timezone: 'UTC' }

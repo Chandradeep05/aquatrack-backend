@@ -10,7 +10,7 @@ export const getAllUsers = async (_req: Request, res: Response, next: NextFuncti
   try {
     const users = await User.find().select('-passwordHash').sort({ createdAt: -1 });
 
-    // Single aggregation query to count intake logs for all users in one round-trip (O(1) database call)
+    // Eliminates per-user N+1 intake count queries using a grouped aggregation
     const logCounts = await IntakeLog.aggregate([
       {
         $group: {
@@ -96,6 +96,9 @@ export const getUserIntakeHistory = async (req: Request, res: Response, next: Ne
         $match: {
           userId: new mongoose.Types.ObjectId(id)
         }
+      },
+      {
+        $sort: { consumedAt: -1 }
       },
       {
         $group: {

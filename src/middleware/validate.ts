@@ -65,11 +65,10 @@ export const validateIntake = (req: Request, res: Response, next: NextFunction) 
       return sendError(res, 'Invalid consumedAt timestamp provided.', 400);
     }
     const now = new Date();
-    const maxFuture = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     const minPast = new Date();
     minPast.setFullYear(now.getFullYear() - 1);
-    if (parsedDate > maxFuture || parsedDate < minPast) {
-      return sendError(res, 'Consumption date must be within the past year and not in the future.', 400);
+    if (parsedDate > now || parsedDate < minPast) {
+      return sendError(res, 'Consumption date must be within the past year and cannot be in the future.', 400);
     }
   }
 
