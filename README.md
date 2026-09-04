@@ -187,7 +187,7 @@ All responses conform to a unified JSON envelope:
 |---|---|---|---|
 | `GET` | `/api/users` | Admin Only | Lists all users, log counts, and system metrics |
 | `GET` | `/api/users/:id/intake` | Admin Only | Inspects any user's intake history |
-| `DELETE` | `/api/users/:id` | Admin Only | Cascade deletes user and all their intake logs |
+| `DELETE` | `/api/users/:id` | Admin Only | Cascade deletes user and associated logs (transactional where supported, with compatibility fallback) |
 
 ### Settings Endpoints
 | Method | Route | Access | Description |
@@ -214,7 +214,7 @@ All responses conform to a unified JSON envelope:
 
 ## Testing & Quality Assurance
 
-AquaTrack backend comes with **28 automated end-to-end test cases** executed with Jest, Supertest, and `mongodb-memory-server` for isolated, deterministic execution without external database dependencies.
+AquaTrack backend comes with **30 automated end-to-end test cases** executed with Jest, Supertest, and `mongodb-memory-server` for isolated, deterministic execution without external database dependencies.
 
 Run tests:
 ```bash

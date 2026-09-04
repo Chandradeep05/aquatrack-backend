@@ -171,6 +171,7 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
     let cascadeDeletedLogsCount = 0;
     const session = await mongoose.startSession();
     try {
+      // Transactional cascade deletion where supported, with a compatibility fallback for standalone MongoDB instances.
       await session.withTransaction(async () => {
         const deletedLogs = await IntakeLog.deleteMany({ userId: targetUser._id }).session(session);
         cascadeDeletedLogsCount = deletedLogs.deletedCount;
