@@ -4,6 +4,13 @@ import path from 'path';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const validateEnv = () => {
+  const isTest = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
+
+  // In test environments, fallback to a placeholder URI if not yet provided by mongodb-memory-server
+  if (isTest && !process.env.MONGODB_URI) {
+    process.env.MONGODB_URI = 'mongodb://127.0.0.1:27017/aquatrack_test';
+  }
+
   const missingVars: string[] = [];
 
   if (!process.env.MONGODB_URI) {
