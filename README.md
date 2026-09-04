@@ -121,9 +121,15 @@ aquatrack-backend/
    ```
 
 5. Start the development server:
-   ```bash
-   npm run dev
-   ```
+   - **Option A (Standard — Requires MongoDB running)**:
+     ```bash
+     npm run dev
+     ```
+   - **Option B (Zero-Setup In-Memory Dev Server — No MongoDB installation required)**:
+     ```bash
+     npm run dev:mem
+     ```
+     *Spins up an embedded in-memory MongoDB instance and auto-seeds the admin user for instant testing.*
 
 The server will run at `http://localhost:5000`. Test health with:
 `GET http://localhost:5000/api/health`
@@ -141,7 +147,7 @@ The server will run at `http://localhost:5000`. Test health with:
 | `CLIENT_URL` | No | `http://localhost:5173` | Allowed origin for CORS |
 | `ADMIN_NAME` | No | `Admin` | Name for seeded admin account |
 | `ADMIN_EMAIL` | No | `admin@aquatrack.com` | Email for seeded admin account |
-| `ADMIN_PASSWORD` | No | `AdminPassword123!` | Password for seeded admin account |
+| `ADMIN_PASSWORD` | **Yes** | — | Password for seeded admin account (exits if missing) |
 
 ---
 
